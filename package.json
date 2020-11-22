@@ -1,0 +1,15 @@
+{
+  "name": "express-simple",
+  "version": "0.0.1",
+  "description": "simple express server",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Arham",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
