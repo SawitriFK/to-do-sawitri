@@ -1,13 +1,15 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
+var passwordHash = require('password-hash');
 
 const port = 3000
 
-const todos = [
+const user = [
     { 
         id: 1,
-        task: 'Wake up',
+        name: 'Sawitri',
+        password: '12345',
         isFinished: true
     }
 ]
@@ -22,16 +24,16 @@ app.use(bodyParser.json())
 
 // read todo
 app.get('/todo', (req, res) => {
-    res.json(todos)
+    res.json(user)
 })
 
 // read todo
 app.get('/todo/:id', (req, res) =>  {
     let result = null;
 
-    for (let i = 0; i < todos.length; i++) {
-        if (todos[i].id == req.params.id) {
-            result = todos[i]
+    for (let i = 0; i < user.length; i++) {
+        if (user[i].id == req.params.id) {
+            result = user[i]
         }
     }
 
@@ -44,16 +46,28 @@ app.get('/todo/:id', (req, res) =>  {
 
 // create todo
 app.post('/todo', (req, res) => {
-    todos.push(req.body)
-
+    
+const{id,name,password,isFinished}=req.body;
+const hashPass = passwordHash.generate(password)
+ user.push({
+     id,
+     name,
+     password: hashPass,
+     isFinished
+ })
     res.json({ message: 'data created' })
 })
 
 // update todo
 app.patch('/todo/:id', (req, res) => {
-    for (let i = 0; i < todos.length; i++) {
-        if (todos[i].id == req.params.id) {
-            todos[i].isFinished = req.body.isFinished
+
+
+
+    for (let i = 0; i < user.length; i++) {
+        if (user[i].id == req.params.id) {
+            const{password}= req.body
+            const hashPass = passwordHash.generate(password)
+            user[i].password = hashPass
         }
     }
 
@@ -64,13 +78,13 @@ app.patch('/todo/:id', (req, res) => {
 app.delete('/todo/:id', (req, res) => {
     let index = null;
 
-    for (let i = 0; i < todos.length; i++) {
-        if (todos[i].id == req.params.id) {
+    for (let i = 0; i < user.length; i++) {
+        if (user[i].id == req.params.id) {
             index = [i]
         }
     }
 
-    todos.splice(index, 1)
+    user.splice(index, 1)
 
     res.json({ message: 'data deleted' })
 })
