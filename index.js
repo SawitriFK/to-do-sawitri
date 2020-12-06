@@ -1,45 +1,78 @@
 const express = require('express')
+const bodyParser = require('body-parser')
 const app = express()
 
 const port = 3000
 
-const myLogger = (req, res, next) => {
-    console.log('LOGGED')
-    next()
-}
+const todos = [
+    { 
+        id: 1,
+        task: 'Wake up',
+        isFinished: true
+    }
+]
 
-const middlewareAuth = (req, res, next) => {
-    console.log(req.headers)
-    if (req.headers.rahasia !== 'secret') {
-        res.status(400).send({ error: 'Not Authenticated' })
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+ 
+// parse application/json
+app.use(bodyParser.json())
+
+
+// read todo
+app.get('/todo', (req, res) => {
+    res.json(todos)
+})
+
+// read todo
+app.get('/todo/:id', (req, res) =>  {
+    let result = null;
+
+    for (let i = 0; i < todos.length; i++) {
+        if (todos[i].id == req.params.id) {
+            result = todos[i]
+        }
+    }
+
+    if (!result) {
+        res.sendStatus(404)
     } else {
-        next()
+        res.json(result)
     }
-} 
-
-app.use(myLogger) 
-
-app.get('/', (req, res) => {
-    res.send('Hello World')
 })
 
-app.get('/profile', middlewareAuth, (req, res) => {
-    const profile = {
-        firstName: 'Arham',
-        lastName: 'Abiyan'
+// create todo
+app.post('/todo', (req, res) => {
+    todos.push(req.body)
+
+    res.json({ message: 'data created' })
+})
+
+// update todo
+app.patch('/todo/:id', (req, res) => {
+    for (let i = 0; i < todos.length; i++) {
+        if (todos[i].id == req.params.id) {
+            todos[i].isFinished = req.body.isFinished
+        }
     }
 
-    res.json(profile)
+    res.json({ message: 'data updated' })
 })
 
-app.get('/ping', (req, res) => {
-    res.json({ message: 'pong' })
-})
+// delete todo
+app.delete('/todo/:id', (req, res) => {
+    let index = null;
 
-app.get('/test/:id', (req, res) => {
-    console.log('query', req.query)
-    console.log('params', req.params)
-    res.send('test page')
+    for (let i = 0; i < todos.length; i++) {
+        if (todos[i].id == req.params.id) {
+            index = [i]
+        }
+    }
+
+    todos.splice(index, 1)
+
+    res.json({ message: 'data deleted' })
 })
 
 app.listen(port, () => {
