@@ -1,18 +1,19 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
-var passwordHash = require('password-hash');
+const passwordHash = require('password-hash');
+const mysql = require('mysql')
+
+const connection = mysql.createConnection({
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    database: 'user_db'
+})
+
 
 const port = 3000
 
-const user = [
-    { 
-        id: 1,
-        name: 'Sawitri',
-        password: '12345',
-        isFinished: true
-    }
-]
 
 
 // parse application/x-www-form-urlencoded
@@ -23,72 +24,33 @@ app.use(bodyParser.json())
 
 
 // read todo
-app.get('/todo', (req, res) => {
-    res.json(user)
+app.get('/user', (req, res) => {
+    connection.query('SELECT * FROM users', (error, results) => {
+        if (!error) res.json(results)
+    })
 })
 
-// read todo
-app.get('/todo/:id', (req, res) =>  {
-    let result = null;
 
-    for (let i = 0; i < user.length; i++) {
-        if (user[i].id == req.params.id) {
-            result = user[i]
-        }
-    }
-
-    if (!result) {
-        res.sendStatus(404)
-    } else {
-        res.json(result)
-    }
-})
 
 // create todo
-app.post('/todo', (req, res) => {
-    
-const{id,name,password,isFinished}=req.body;
-const hashPass = passwordHash.generate(password)
- user.push({
-     id,
-     name,
-     password: hashPass,
-     isFinished
- })
-    res.json({ message: 'data created' })
-})
-
-// update todo
-app.patch('/todo/:id', (req, res) => {
-
-
-
-    for (let i = 0; i < user.length; i++) {
-        if (user[i].id == req.params.id) {
-            const{password}= req.body
-            const hashPass = passwordHash.generate(password)
-            user[i].password = hashPass
-        }
+app.post('/user', (req, res) => {
+    const users = { 
+        id: req.body.id,
+        fullname: req.body.fullname,
+        username: req.body.username,
+        pass: passwordHash.generate(req.body.pass)
     }
 
-    res.json({ message: 'data updated' })
-})
-
-// delete todo
-app.delete('/todo/:id', (req, res) => {
-    let index = null;
-
-    for (let i = 0; i < user.length; i++) {
-        if (user[i].id == req.params.id) {
-            index = [i]
-        }
+connection.query('INSERT INTO users SET ?', users, (error, results) => {
+    if (!error) {
+        res.json({ message: 'data created' })
+    } else {
+        res.status(500).json({ error: error })
     }
-
-    user.splice(index, 1)
-
-    res.json({ message: 'data deleted' })
+})
 })
 
+/
 app.listen(port, () => {
     console.log('Listening in port: ', port)
 })
